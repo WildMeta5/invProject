@@ -8,13 +8,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Process what the user typed 
     $product_name = $_POST['product_name'];
     $serial_number = $_POST['serial_number'];
+    $kit_number = $_POST['kit_number'];
 
     // Save the product information to the database
-    $sql = "INSERT INTO productlogs (product_name, serial_number) VALUES (?, ?)";
+    $sql = "INSERT INTO productlogs (product_name, serial_number, kit_number) VALUES (?, ?, ?)";
 
     $stmt = $conn->prepare($sql);
     // put the values into the sql command
-    $stmt->bind_param("ss", $product_name, $serial_number);
+    $stmt->bind_param("ssi", $product_name, $serial_number, $kit_number);
 
     $stmt->execute();
 }
@@ -52,6 +53,13 @@ $result = $conn->query($sql);
 
     <br><br>
 
+    Kit Number:
+    <br>
+
+    <input type="text" name="kit_number" required>
+
+    <br><br>
+
     <button type="submit">
         Save Product
     </button>
@@ -72,6 +80,8 @@ $result = $conn->query($sql);
 
         <th>Serial Number</th>
 
+        <th>Kit Number</th>
+
         <th>Date / Time</th>
 
     </tr>
@@ -90,6 +100,10 @@ $result = $conn->query($sql);
 
             <td>
                 <?php echo $row["serial_number"]; ?>
+            </td>
+
+            <td>
+                <?php echo "kit " . $row["kit_number"]; ?>
             </td>
 
             <td>
