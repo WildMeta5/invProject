@@ -1,10 +1,22 @@
 <?php
 
-//Connect to database
+// Connect to database
 require "db.php";
 
+// Checks if you want to delete a product
+if (isset($_POST["delete_id"])) {
+    $deleteId = $_POST["delete_id"];
+
+    $sql= "DELETE FROM productlogs WHERE id = ?";
+    // Prepare
+    $stmt = $conn->prepare($sql);
+    // put id to "i"/?
+    $stmt->bind_param("i", $deleteId);
+    // run it
+    $stmt->execute();
+}
 // Check if the save button was clicked
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+elseif ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Process what the user typed 
     $product_name = $_POST['product_name'];
     $serial_number = $_POST['serial_number'];
@@ -24,6 +36,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $sql = "SELECT * FROM productlogs ORDER BY id DESC";
 $result = $conn->query($sql);
 ?>
+
+// ---- Html --------
 
 <!DOCTYPE html>
 
@@ -84,6 +98,8 @@ $result = $conn->query($sql);
 
         <th>Date / Time</th>
 
+        <th>Actions</th>
+ 
     </tr>
 
     <?php while ($row = $result->fetch_assoc()) { ?>
@@ -109,7 +125,21 @@ $result = $conn->query($sql);
             <td>
                 <?php echo $row["created_at"]; ?>
             </td>
+                
+            <td>
+                <a href= "edit.php?id=<?php echo $row["id"]; ?>">
+                    Edit
+                </a>
 
+                <form method="POST">
+                    <input type= "hidden" name= "delete_id" value= "<?php echo $row["id"]; ?>" >
+
+                    <button type= "submit"
+                        onclick="return confirm('Are you sure you want to delete this?')" >
+                        Delete
+                    </button>
+                </form>
+            </td>
         </tr>
 
 
