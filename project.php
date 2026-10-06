@@ -15,7 +15,7 @@ if (isset($_POST["delete_id"])) {
     // run it
     $stmt->execute();
 }
-// Check if the save button was clicked
+// Check if the save button was clicked, Add product
 elseif ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Process what the user typed 
     $product_name = $_POST['product_name'];
@@ -32,9 +32,52 @@ elseif ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $stmt->execute();
 }
 
-// Get all products from the database
-$sql = "SELECT * FROM productlogs ORDER BY id DESC";
-$result = $conn->query($sql);
+// Get the kit numbers that exist in the database
+$kitSql = "SELECT DISTINCT kit_number FROM productlogs ORDER BY kit_number";
+
+$kitResult = $conn->query($kitSql);
+
+// Get all products from the database by
+// Get the search text from the URL
+$search = $_GET["search"] ?? "";
+
+$kit = $_GET["kit"] ?? "";
+
+
+// If the user searched for something
+if ($search != "") {
+
+    $searchTerm = "%" . $search . "%";
+
+    $sql = "SELECT * FROM productlogs
+            WHERE product_name LIKE ?
+            OR serial_number LIKE ?
+            ORDER BY id DESC";
+
+    $stmt = $conn->prepare($sql);
+
+    $stmt->bind_param(
+        "ss",
+        $searchTerm,
+        $searchTerm
+    );
+
+    $stmt->execute();
+
+    $result = $stmt->get_result();
+
+}
+
+
+// If there is no search
+else {
+
+    $sql = "SELECT * FROM productlogs
+            ORDER BY id DESC";
+
+    $result = $conn->query($sql);
+
+}
 ?>
 
 // ---- Html --------
@@ -83,6 +126,27 @@ $result = $conn->query($sql);
 <hr>
 
 <h2>Saved Products</h2>
+
+
+<form method="GET">
+
+    Search:
+    <input
+        type="text"
+        name="search"
+        placeholder="Product name or serial number"
+        value="<?php echo htmlspecialchars($_GET["search"] ?? "") ?>"
+    >
+
+    <button type="submit">
+        Search
+    </button>
+
+    <a href="project.php"> show all </a>
+
+</form>
+
+<br>
 
 <table border="1">
 
