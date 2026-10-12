@@ -195,6 +195,14 @@ else {
                     Edit
                 </a>
 
+                <a href="report.php?id=<?php echo $row["id"]; ?>">
+                    Report
+                </a>
+
+                <a href="photo.php?id=<?php echo $row["id"]; ?>">
+                    Photo
+                </a>
+
                 <form method="POST">
                     <input type= "hidden" name= "delete_id" value= "<?php echo $row["id"]; ?>" >
 
