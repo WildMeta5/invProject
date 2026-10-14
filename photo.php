@@ -16,65 +16,82 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         $photo = $_FILES["photo"];
 
-        $originalName = $photo["name"];
+        // Make sure the upload worked
+        if ($photo["error"] == UPLOAD_ERR_OK) {
 
-        $temporaryName = $photo["tmp_name"];
+            $temporaryName = $photo["tmp_name"];
 
+            // Check the real file type
+            $fileType = mime_content_type($temporaryName);
 
-        // Get the file extension
-        $extension = pathinfo(
-            $originalName,
-            PATHINFO_EXTENSION
-        );
-
-
-        // Create a unique filename
-        $newFileName =
-            "photo_" .
-            uniqid() .
-            "." .
-            $extension;
+            // File types we will allow
+            $allowedTypes = [
+                "image/jpeg" => "jpg",
+                "image/png"  => "png",
+                "image/webp" => "webp"
+            ];
 
 
-        // Where the photo will be saved
-        $photoPath =
-            "uploads/" .
-            $newFileName;
+            // Make sure it is an allowed image type
+            if (isset($allowedTypes[$fileType])) {
+
+                $extension = $allowedTypes[$fileType];
 
 
-        // Move photo into uploads folder
-        move_uploaded_file(
-            $temporaryName,
-            $photoPath
-        );
+                // Create a unique file name
+                $newFileName =
+                    "photo_" .
+                    uniqid() .
+                    "." .
+                    $extension;
 
 
-        // Save the photo path in MySQL
-        $sql = "INSERT INTO product_photos
-                (product_id, photo_path)
-                VALUES (?, ?)";
+                $photoPath =
+                    "uploads/" .
+                    $newFileName;
 
 
-        $stmt = $conn->prepare($sql);
+                // Move the uploaded image
+                if (move_uploaded_file(
+                    $temporaryName,
+                    $photoPath
+                )) {
+
+                    // Save the image path in MySQL
+                    $sql = "INSERT INTO product_photos
+                            (product_id, photo_path)
+                            VALUES (?, ?)";
+
+                    $stmt = $conn->prepare($sql);
+
+                    $stmt->bind_param(
+                        "is",
+                        $productId,
+                        $photoPath
+                    );
+
+                    $stmt->execute();
 
 
-        $stmt->bind_param(
-            "is",
-            $productId,
-            $photoPath
-        );
+                    header(
+                        "Location: photo.php?id=" .
+                        $productId
+                    );
 
+                    exit;
+                }
 
-        $stmt->execute();
+            } else {
 
+                echo "Please upload a JPG, PNG, or WebP image.";
 
-        // Reload the page
-        header(
-            "Location: photo.php?id=" .
-            $productId
-        );
+            }
 
-        exit;
+        } else {
+
+            echo "There was a problem uploading the photo.";
+
+        }
     }
 }
 
@@ -130,14 +147,15 @@ $photoResult = $stmt->get_result();
 <html>
 
 <head>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Product Photos</title>
+    <link rel="stylesheet" href="style.css">
 
 </head>
 
 
 <body>
-
+<div class="container">
 
 <h1>Product Photos</h1>
 
@@ -178,6 +196,7 @@ $photoResult = $stmt->get_result();
         type="file"
         name="photo"
         accept="image/*"
+        capture="environment"
         required
     >
 
@@ -226,6 +245,7 @@ $photoResult = $stmt->get_result();
 </a>
 
 
+</div>
 </body>
 
 </html>

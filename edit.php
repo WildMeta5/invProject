@@ -61,12 +61,14 @@ $product = $result->fetch_assoc();
 <!DOCTYPE html>
 <html>
 <head>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Product</title>
+    <link rel="stylesheet" href="style.css">
 
 </head>
 
 <body>
+<div class="container">
 
 <h1>Edit Product</h1>
 
@@ -118,5 +120,6 @@ $product = $result->fetch_assoc();
     Back to Product Log
 </a>
 
+</div>
 </body>
 </html>

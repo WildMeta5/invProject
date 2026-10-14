@@ -32,6 +32,46 @@ elseif ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $stmt->execute();
 }
 
+// Base SQL query to get products along with their latest photo and report information
+$baseSelect = "
+    SELECT
+        p.*,
+
+        (
+            SELECT photo_path
+            FROM product_photos
+            WHERE product_id = p.id
+            ORDER BY id DESC
+            LIMIT 1
+        ) AS latest_photo,
+
+        (
+            SELECT report_type
+            FROM product_reports
+            WHERE product_id = p.id
+            ORDER BY id DESC
+            LIMIT 1
+        ) AS latest_report_type,
+
+        (
+            SELECT comment
+            FROM product_reports
+            WHERE product_id = p.id
+            ORDER BY id DESC
+            LIMIT 1
+        ) AS latest_report_comment,
+
+        (
+            SELECT created_at
+            FROM product_reports
+            WHERE product_id = p.id
+            ORDER BY id DESC
+            LIMIT 1
+        ) AS latest_report_time
+
+    FROM productlogs p
+";
+
 // Get the kit numbers that exist in the database
 $kitSql = "SELECT DISTINCT kit_number FROM productlogs ORDER BY kit_number";
 
@@ -49,10 +89,10 @@ if ($search != "") {
 
     $searchTerm = "%" . $search . "%";
 
-    $sql = "SELECT * FROM productlogs
-            WHERE product_name LIKE ?
-            OR serial_number LIKE ?
-            ORDER BY id DESC";
+    $sql = $baseSelect . "
+           WHERE p.product_name LIKE ?
+           OR p.serial_number LIKE ?
+           ORDER BY p.id DESC";
 
     $stmt = $conn->prepare($sql);
 
@@ -72,8 +112,7 @@ if ($search != "") {
 // If there is no search
 else {
 
-    $sql = "SELECT * FROM productlogs
-            ORDER BY id DESC";
+    $sql = $baseSelect . "ORDER BY p.id DESC";
 
     $result = $conn->query($sql);
 
@@ -86,9 +125,13 @@ else {
 
 <html>
 
-<head> <title>Product Log</title> </head>
+<head> <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Product Log</title>
+<link rel="stylesheet" href="style.css">
+</head>
 
 <body>
+    <div class="container">
 
 <h1>Product Log</h1>
 
@@ -148,9 +191,11 @@ else {
 
 <br>
 
-<table border="1">
+<div class="table-container">
+<table>
 
     <tr>
+        <th>Latest Photo</th>
 
         <th>ID</th>
 
@@ -160,7 +205,9 @@ else {
 
         <th>Kit Number</th>
 
-        <th>Date / Time</th>
+        <th>Latest Report</th>
+
+        <th>Date Added</th>
 
         <th>Actions</th>
  
@@ -171,6 +218,16 @@ else {
         <tr>
 
             <td>
+                <?php if ($row["latest_photo"]) { ?>
+                    <a href="details.php?id=<?php echo $row["id"]; ?>">
+                    <img src="<?php echo $row["latest_photo"]; ?>" alt="Latest Photo" class="product-thumbnail">
+                    </a>
+                <?php } else { ?>
+                    No Photo
+                <?php } ?>
+            </td>
+
+            <td>
                 <?php echo $row["id"]; ?>
             </td>
 
@@ -179,18 +236,34 @@ else {
             </td>
 
             <td>
-                <?php echo $row["serial_number"]; ?>
+                <?php echo htmlspecialchars($row["serial_number"]); ?>
             </td>
 
             <td>
-                <?php echo "kit " . $row["kit_number"]; ?>
+                <?php echo "Kit: " . $row["kit_number"]; ?>
+            </td>
+
+            <td class="latest-report">
+                <?php if (!empty($row["latest_report_type"])) { ?>
+                    <strong> <?php echo htmlspecialchars($row["latest_report_type"]); ?> </strong> 
+                    <br>
+                    <?php if (!empty($row["latest_report_comment"])) { ?>
+                        <?php echo htmlspecialchars($row["latest_report_comment"]); ?>
+                        <br>
+                    <?php } ?>
+                    <?php if (!empty($row["latest_report_time"])) { ?>
+                        <small> <?php echo htmlspecialchars($row["latest_report_time"]); ?> </small>
+                    <?php } ?>
+                <?php } else { ?>
+                    No Report
+                <?php } ?>
             </td>
 
             <td>
                 <?php echo $row["created_at"]; ?>
             </td>
                 
-            <td>
+            <td class="actions">
                 <a href= "edit.php?id=<?php echo $row["id"]; ?>">
                     Edit
                 </a>
@@ -218,7 +291,7 @@ else {
     <?php } ?>
 
 </table>
-
+</div>
 </body>
 
 </html>

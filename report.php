@@ -71,13 +71,15 @@ $reportResult = $stmt->get_result();
 <html>
 
 <head>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Product Report</title>
+    <link rel="stylesheet" href="style.css">
 
 </head>
 
 
 <body>
+<div class="container">
 
 
 <h1>Product Report</h1>
@@ -207,6 +209,7 @@ $reportResult = $stmt->get_result();
 </table>
 
 
+</div>
 </body>
 
 </html>

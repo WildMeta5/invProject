@@ -1,0 +1,103 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    background-color: #f4f4f4;
+}
+
+.container {
+    width: 90%;
+    max-width: 1000px;
+    margin: 20px auto;
+    background-color: white;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+h1,
+h2 {
+    margin-top: 10px;
+}
+
+input,
+select,
+textarea,
+button {
+    font-size: 16px;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+input,
+select,
+textarea {
+    width: 100%;
+    margin-top: 5px;
+}
+
+button {
+    cursor: pointer;
+}
+
+a {
+    display: inline-block;
+    margin: 5px;
+}
+
+form {
+    margin-bottom: 10px;
+}
+
+.table-container {
+    width: 100%;
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th,
+td {
+    border: 1px solid #cccccc;
+    padding: 10px;
+    text-align: left;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+.actions {
+    white-space: nowrap;
+}
+
+@media (max-width: 600px) {
+
+    .container {
+        width: 100%;
+        margin: 0;
+        padding: 12px;
+    }
+
+    button {
+        width: 100%;
+        margin-top: 5px;
+    }
+
+    .actions a {
+        display: block;
+    }
+}
+
+.product-thumbnail {
+    width: 80px;
+    height: 80px; 
+    object-fit: cover;
+    border-radius: 6px;
+}
+
+.latest-report {
+    max-width: 200px;
+}
