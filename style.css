@@ -101,3 +101,57 @@ img {
 .latest-report {
     max-width: 200px;
 }
+
+.main-photo-area {
+    text-align: center;
+    margin: 20px 0;
+}
+
+.main-product-photo {
+    width: 100%;
+    max-width: 500px;
+    max-height: 400px;
+    object-fit: contain;
+    border-radius: 8px;
+}
+
+.product-info {
+    margin: 20px 0;
+}
+
+.product-info p {
+    font-size: 18px;
+}
+
+.detail-actions {
+    margin: 20px 0;
+}
+
+.detail-actions a {
+    padding: 10px 15px;
+    border: 1px solid #cccccc;
+    text-decoration: none;
+    border-radius: 5px;
+}
+
+.photo-gallery {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.gallery-photo {
+    width: 180px;
+}
+
+.gallery-photo img {
+    width: 180px;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 6px;
+}
+
+.gallery-photo small {
+    display: block;
+    margin-top: 5px;
+}

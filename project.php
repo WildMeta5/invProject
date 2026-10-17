@@ -30,6 +30,13 @@ elseif ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $stmt->bind_param("ssi", $product_name, $serial_number, $kit_number);
 
     $stmt->execute();
+
+    // Get the ID of the newly inserted product
+    $newProductId = $conn->insert_id;
+
+    // Redirect to the product details page
+    header("Location: details.php?id=" . $newProductId);
+    exit;
 }
 
 // Base SQL query to get products along with their latest photo and report information
@@ -134,8 +141,11 @@ else {
     <div class="container">
 
 <h1>Product Log</h1>
+<a href="intake.php">
+    Go to Product Intake
+</a>
 
-<h2>Add Product</h2>
+<h2 id="add-product"> Add Product</h2>
 
 <form method="POST">
 
@@ -149,7 +159,7 @@ else {
     Serial Number:
     <br>
 
-    <input type="text" name="serial_number" required>
+    <input type="text" name="serial_number" autocomplete="off" autocapitalize="off" spellcheck="false" required>
 
     <br><br>
 
@@ -232,7 +242,9 @@ else {
             </td>
 
             <td>
+                <a href="details.php?id=<?php echo $row["id"]; ?>">
                 <?php echo $row["product_name"]; ?>
+                </a>
             </td>
 
             <td>

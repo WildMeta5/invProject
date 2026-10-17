@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $stmt->execute();
 
     // Reload the report page
-    header("Location: report.php?id=" . $productId);
+    header("Location: details.php?id=" . $productId);
     exit();
 }
 // Get the product ID from the URL
