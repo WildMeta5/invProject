@@ -24,7 +24,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 // Get the product ID from the URL
 $productId = $_GET["id"];
 
-
 // Find the product
 $sql = "SELECT * FROM productlogs
         WHERE id = ?";
@@ -42,30 +41,24 @@ $product = $result->fetch_assoc();
 // ---------------------------------
 // GET REPORT HISTORY
 // ---------------------------------
-
 $sql = "SELECT * FROM product_reports
         WHERE product_id = ?
         ORDER BY id DESC";
 
-
 $stmt = $conn->prepare($sql);
-
 
 $stmt->bind_param(
     "i",
     $productId
 );
 
-
 $stmt->execute();
-
 
 $reportResult = $stmt->get_result();
 
 ?>
 
 // ---- Html --------
-
 <!DOCTYPE html>
 
 <html>
@@ -77,36 +70,28 @@ $reportResult = $stmt->get_result();
 
 </head>
 
-
 <body>
 <div class="container">
 
-
 <h1>Product Report</h1>
-
 
 <h2>
     <?php echo htmlspecialchars($product["product_name"]); ?>
 </h2>
-
 
 <p>
     Serial Number:
     <?php echo htmlspecialchars($product["serial_number"]); ?>
 </p>
 
-
 <p>
     Kit:
     <?php echo $product["kit_number"]; ?>
 </p>
 
-
 <hr>
 
-
 <h2>Add Report</h2>
-
 
 <form method="POST">
 
@@ -135,7 +120,6 @@ $reportResult = $stmt->get_result();
 
 <br><br>
 
-
     Comment:
     <br>
 
@@ -147,17 +131,13 @@ $reportResult = $stmt->get_result();
 
     <br><br>
 
-
     <button type="submit">
         Save Report
     </button>
 
-
 </form>
 
-
 <br>
-
 
 <a href="project.php">
     Back to Product Log
@@ -165,9 +145,7 @@ $reportResult = $stmt->get_result();
 
 <hr>
 
-
 <h2>Report History</h2>
-
 
 <table border="1">
 
@@ -178,7 +156,6 @@ $reportResult = $stmt->get_result();
 
         <th>Date / Time</th>
     </tr>
-
 
     <?php while ($report = $reportResult->fetch_assoc()) { ?>
 
@@ -205,9 +182,7 @@ $reportResult = $stmt->get_result();
 
     <?php } ?>
 
-
 </table>
-
 
 </div>
 </body>

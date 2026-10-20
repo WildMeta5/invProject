@@ -2,22 +2,18 @@
 
 require "db.php";
 
-
 // ---------------------------------
 // GET PRODUCT ID
 // ---------------------------------
 
 $productId = $_GET["id"] ?? 0;
 
-
 // Make sure the ID is a number
 $productId = (int)$productId;
-
 
 // ---------------------------------
 // GET PRODUCT INFORMATION
 // ---------------------------------
-
 $sql = "SELECT * FROM productlogs
         WHERE id = ?";
 
@@ -29,24 +25,15 @@ $stmt->bind_param(
 );
 
 $stmt->execute();
-
 $result = $stmt->get_result();
-
 $product = $result->fetch_assoc();
 
-
 // If product does not exist
-if (!$product) {
-
-    die("Product not found.");
-
-}
-
+if (!$product) { die("Product not found."); }
 
 // ---------------------------------
 // GET LATEST PHOTO
 // ---------------------------------
-
 $sql = "SELECT * FROM product_photos
         WHERE product_id = ?
         ORDER BY id DESC
@@ -60,16 +47,12 @@ $stmt->bind_param(
 );
 
 $stmt->execute();
-
 $photoResult = $stmt->get_result();
-
 $latestPhoto = $photoResult->fetch_assoc();
-
 
 // ---------------------------------
 // GET REPORT HISTORY
 // ---------------------------------
-
 $sql = "SELECT * FROM product_reports
         WHERE product_id = ?
         ORDER BY id DESC";
@@ -84,7 +67,6 @@ $stmt->bind_param(
 $stmt->execute();
 
 $reportResult = $stmt->get_result();
-
 
 // ---------------------------------
 // GET ALL PHOTOS
@@ -108,7 +90,6 @@ $allPhotos = $stmt->get_result();
 ?>
 
 // ------------ HTML ------------
-
 <!DOCTYPE html>
 
 <html>
@@ -129,11 +110,9 @@ $allPhotos = $stmt->get_result();
 
 </head>
 
-
 <body>
 
 <div class="container">
-
 
     <a href="project.php">
         ← Back to Product Log
@@ -143,7 +122,6 @@ $allPhotos = $stmt->get_result();
         Add another Product
     </a>
 
-
     <h1>
         <?php
         echo htmlspecialchars(
@@ -151,7 +129,6 @@ $allPhotos = $stmt->get_result();
         );
         ?>
     </h1>
-
 
     <!-- MAIN PHOTO -->
 
@@ -177,7 +154,6 @@ $allPhotos = $stmt->get_result();
 
     </div>
 
-
     <!-- PRODUCT INFORMATION -->
 
     <div class="product-info">
@@ -192,13 +168,11 @@ $allPhotos = $stmt->get_result();
             ?>
         </p>
 
-
         <p>
             <strong>Kit:</strong>
 
             Kit <?php echo $product["kit_number"]; ?>
         </p>
-
 
         <p>
             <strong>Date Added:</strong>
@@ -207,7 +181,6 @@ $allPhotos = $stmt->get_result();
         </p>
 
     </div>
-
 
     <!-- ACTION BUTTONS -->
 
@@ -227,14 +200,10 @@ $allPhotos = $stmt->get_result();
 
     </div>
 
-
     <hr>
 
-
     <!-- REPORT HISTORY -->
-
     <h2>Report History</h2>
-
 
     <div class="table-container">
 
@@ -250,7 +219,6 @@ $allPhotos = $stmt->get_result();
 
             </tr>
 
-
             <?php while ($report = $reportResult->fetch_assoc()) { ?>
 
                 <tr>
@@ -265,7 +233,6 @@ $allPhotos = $stmt->get_result();
 
                     </td>
 
-
                     <td>
 
                         <?php
@@ -275,7 +242,6 @@ $allPhotos = $stmt->get_result();
                         ?>
 
                     </td>
-
 
                     <td>
 
@@ -293,17 +259,12 @@ $allPhotos = $stmt->get_result();
 
     </div>
 
-
     <hr>
 
-
     <!-- PHOTO HISTORY -->
-
     <h2>Photos</h2>
 
-
     <div class="photo-gallery">
-
 
         <?php while ($photo = $allPhotos->fetch_assoc()) { ?>
 
@@ -326,9 +287,7 @@ $allPhotos = $stmt->get_result();
 
         <?php } ?>
 
-
     </div>
-
 
 </div>
 

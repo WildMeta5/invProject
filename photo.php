@@ -5,11 +5,9 @@ require "db.php";
 // ---------------------------------
 // UPLOAD PHOTO
 // ---------------------------------
-
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     $productId = $_POST["product_id"];
-
 
     // Make sure a file was uploaded
     if (isset($_FILES["photo"])) {
@@ -31,12 +29,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 "image/webp" => "webp"
             ];
 
-
             // Make sure it is an allowed image type
             if (isset($allowedTypes[$fileType])) {
 
                 $extension = $allowedTypes[$fileType];
-
 
                 // Create a unique file name
                 $newFileName =
@@ -45,11 +41,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     "." .
                     $extension;
 
-
                 $photoPath =
                     "uploads/" .
                     $newFileName;
-
 
                 // Move the uploaded image
                 if (move_uploaded_file(
@@ -71,7 +65,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     );
 
                     $stmt->execute();
-
 
                     header(
                         "Location: photo.php?id=" .
@@ -95,11 +88,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 
-
-
 // Get the product ID from the URL
 $productId = $_GET["id"];
-
 
 // Find the product
 $sql = "SELECT * FROM productlogs
@@ -118,30 +108,24 @@ $product = $result->fetch_assoc();
 // ---------------------------------
 // GET PRODUCT PHOTOS
 // ---------------------------------
-
 $sql = "SELECT * FROM product_photos
         WHERE product_id = ?
         ORDER BY id DESC";
 
-
 $stmt = $conn->prepare($sql);
-
 
 $stmt->bind_param(
     "i",
     $productId
 );
 
-
 $stmt->execute();
-
 
 $photoResult = $stmt->get_result();
 
 ?>
 
 // ---- Html upload photo form --------
-
 <!DOCTYPE html>
 
 <html>
@@ -153,35 +137,28 @@ $photoResult = $stmt->get_result();
 
 </head>
 
-
 <body>
 <div class="container">
 
 <h1>Product Photos</h1>
 
-
 <h2>
     <?php echo htmlspecialchars($product["product_name"]); ?>
 </h2>
-
 
 <p>
     Serial Number:
     <?php echo htmlspecialchars($product["serial_number"]); ?>
 </p>
 
-
 <p>
     Kit:
     <?php echo $product["kit_number"]; ?>
 </p>
 
-
 <hr>
 
-
 <h2>Upload Photo</h2>
-
 
 <form method="POST" enctype="multipart/form-data">
 
@@ -190,7 +167,6 @@ $photoResult = $stmt->get_result();
         name="product_id"
         value="<?php echo $product["id"]; ?>"
     >
-
 
     <input
         type="file"
@@ -202,7 +178,6 @@ $photoResult = $stmt->get_result();
 
     <br><br>
 
-
     <button type="submit">
         Upload Photo
     </button>
@@ -211,12 +186,9 @@ $photoResult = $stmt->get_result();
 
 <hr>
 
-
 <h2>Photo History</h2>
 
-
 <?php while ($photo = $photoResult->fetch_assoc()) { ?>
-
 
     <div>
 
@@ -225,7 +197,6 @@ $photoResult = $stmt->get_result();
             width="300"
         >
 
-
         <p>
             Uploaded:
             <?php echo $photo["created_at"]; ?>
@@ -233,17 +204,13 @@ $photoResult = $stmt->get_result();
 
     </div>
 
-
     <hr>
 
-
 <?php } ?>
-
 
 <a href="project.php">
     Back to Product Log
 </a>
-
 
 </div>
 </body>

@@ -4,17 +4,14 @@ require "db.php";
 
 $message = "";
 
-
 // ---------------------------------
 // SAVE NEW PRODUCT + PHOTO
 // ---------------------------------
-
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     $productName = trim($_POST["product_name"]);
     $serialNumber = trim($_POST["serial_number"]);
     $kitNumber = $_POST["kit_number"];
-
 
     // Make sure a photo was uploaded
     if (
@@ -26,10 +23,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         $temporaryName = $photo["tmp_name"];
 
-
         // Check the actual file type
         $fileType = mime_content_type($temporaryName);
-
 
         $allowedTypes = [
             "image/jpeg" => "jpg",
@@ -37,24 +32,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             "image/webp" => "webp"
         ];
 
-
         // Make sure the uploaded file is an image we allow
         if (isset($allowedTypes[$fileType])) {
 
             $extension = $allowedTypes[$fileType];
 
-
             // ---------------------------------
             // CREATE PRODUCT
             // ---------------------------------
-
             $sql = "INSERT INTO productlogs
                     (product_name, serial_number, kit_number)
                     VALUES (?, ?, ?)";
 
-
             $stmt = $conn->prepare($sql);
-
 
             $stmt->bind_param(
                 "ssi",
@@ -63,18 +53,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $kitNumber
             );
 
-
             $stmt->execute();
-
 
             // Get the ID MySQL just created
             $newProductId = $conn->insert_id;
 
-
             // ---------------------------------
             // SAVE PHOTO FILE
             // ---------------------------------
-
             $newFileName =
                 "product_" .
                 $newProductId .
@@ -83,11 +69,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 "." .
                 $extension;
 
-
             $photoPath =
                 "uploads/" .
                 $newFileName;
-
 
             if (
                 move_uploaded_file(
@@ -98,15 +82,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                 // ---------------------------------
                 // SAVE PHOTO IN DATABASE
-                // ---------------------------------
-
+                // --------------------------------
                 $sql = "INSERT INTO product_photos
                         (product_id, photo_path)
                         VALUES (?, ?)";
 
-
                 $stmt = $conn->prepare($sql);
-
 
                 $stmt->bind_param(
                     "is",
@@ -114,9 +95,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $photoPath
                 );
 
-
                 $stmt->execute();
-
 
                 // Go to the new product
                 header(
@@ -249,7 +228,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </button>
 
 </form>
-
 
 <br>
 

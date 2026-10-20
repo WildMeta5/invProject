@@ -12,7 +12,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $serial_number = $_POST["serial_number"];
     $kit_number = $_POST["kit_number"];
 
-
     // Update the product
     $sql = "UPDATE productlogs
             SET product_name = ?, serial_number = ?, kit_number = ?
@@ -30,7 +29,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     $stmt->execute();
 
-
     // Go back to the product page
     header("Location: project.php");
     exit;
@@ -40,7 +38,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 // Get the product ID from the URL
 $id = $_GET["id"];
 
-
 // Find that product in the database
 $sql = "SELECT * FROM productlogs WHERE id = ?";
 
@@ -49,7 +46,6 @@ $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $id);
 
 $stmt->execute();
-
 
 // Get the result
 $result = $stmt->get_result();

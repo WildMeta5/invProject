@@ -90,7 +90,6 @@ $search = $_GET["search"] ?? "";
 
 $kit = $_GET["kit"] ?? "";
 
-
 // If the user searched for something
 if ($search != "") {
 
@@ -115,7 +114,6 @@ if ($search != "") {
 
 }
 
-
 // If there is no search
 else {
 
@@ -127,7 +125,6 @@ else {
 ?>
 
 // ---- Html --------
-
 <!DOCTYPE html>
 
 <html>
@@ -179,7 +176,6 @@ else {
 <hr>
 
 <h2>Saved Products</h2>
-
 
 <form method="GET">
 
@@ -298,7 +294,6 @@ else {
                 </form>
             </td>
         </tr>
-
 
     <?php } ?>
 
