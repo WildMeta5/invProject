@@ -5,7 +5,22 @@ require "db.php";
 
 // Checks if you want to delete a product
 if (isset($_POST["delete_id"])) {
-    $deleteId = $_POST["delete_id"];
+    $deleteId = (int)$_POST["delete_id"];
+
+    // Find all photos associated with this product and delete them from the server
+    $photoSql = "SELECT photo_path FROM product_photos WHERE product_id = ?";
+    $photostmt = $conn->prepare($photoSql);
+    $photostmt->bind_param("i", $deleteId);
+    $photostmt->execute();
+    $photoResult = $photostmt->get_result();
+
+    while ($photorRow = $photoResult->fetch_assoc()) {
+        $photoPath = $photorRow['photo_path'];
+        if (!empty($photoPath) && file_exists($photoPath)) {
+            unlink($photoPath);
+        }
+    }
+    $photostmt->close();
 
     $sql= "DELETE FROM productlogs WHERE id = ?";
     // Prepare

@@ -1,263 +1,227 @@
 <?php
-
 require "db.php";
+require "ocr_helper.php";
+
+// Delete old scan files from the uploads directory to keep it clean
+deleteOldScanFiles();
 
 $message = "";
+$ocrRawText = "";
+$uploadedPhotoPath = "";
 
-// ---------------------------------
-// SAVE NEW PRODUCT + PHOTO
-// ---------------------------------
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
+// Values to keep form fields populated
+$productName = "";
+$serialNumber = "";
+$kitNumber = "";
 
-    $productName = trim($_POST["product_name"]);
-    $serialNumber = trim($_POST["serial_number"]);
-    $kitNumber = $_POST["kit_number"];
+// --------------------------------------------------
+// ACTION 0: User clicked "Cancel / Discard Scan"
+// --------------------------------------------------
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["action_cancel"])) {
+    $oldScan = trim($_POST["previous_scan_path"] ?? "");
+    if (!empty($oldScan) && file_exists($oldScan) && strpos(basename($oldScan), "scan_") === 0) {
+        unlink($oldScan);
+    }
+    $message = "Scan cancelled and temporary photo removed.";
+}
 
-    // Make sure a photo was uploaded
-    if (
-        isset($_FILES["photo"]) &&
-        $_FILES["photo"]["error"] == UPLOAD_ERR_OK
-    ) {
+// --------------------------------------------------
+// ACTION 1: A photo was uploaded -> Run OCR
+// --------------------------------------------------
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["action_scan"])) {
+    
+    // If the user is re-scanning, delete their previous temporary scan file first
+    $previousScan = trim($_POST["previous_scan_path"] ?? "");
+    if (!empty($previousScan) && file_exists($previousScan) && strpos(basename($previousScan), "scan_") === 0) {
+        unlink($previousScan);
+    }
 
+    if (isset($_FILES["photo"]) && $_FILES["photo"]["error"] == UPLOAD_ERR_OK) {
         $photo = $_FILES["photo"];
-
         $temporaryName = $photo["tmp_name"];
 
-        // Check the actual file type
         $fileType = mime_content_type($temporaryName);
-
         $allowedTypes = [
             "image/jpeg" => "jpg",
             "image/png"  => "png",
             "image/webp" => "webp"
         ];
 
-        // Make sure the uploaded file is an image we allow
         if (isset($allowedTypes[$fileType])) {
-
             $extension = $allowedTypes[$fileType];
 
-            // ---------------------------------
-            // CREATE PRODUCT
-            // ---------------------------------
-            $sql = "INSERT INTO productlogs
-                    (product_name, serial_number, kit_number)
-                    VALUES (?, ?, ?)";
+            // Save temporary scan file into uploads
+            $newFileName = "scan_" . uniqid() . "." . $extension;
+            $photoPath = "uploads/" . $newFileName;
 
-            $stmt = $conn->prepare($sql);
+            if (move_uploaded_file($temporaryName, $photoPath)) {
+                $uploadedPhotoPath = $photoPath;
 
-            $stmt->bind_param(
-                "ssi",
-                $productName,
-                $serialNumber,
-                $kitNumber
-            );
+                // Run Tesseract via our helper function
+                $ocrRawText = runOCR($photoPath);
 
-            $stmt->execute();
+                // Auto-fill Product Name and Serial Number if parseStickerText exists
+                if (function_exists('parseStickerText')) {
+                    $parsed = parseStickerText($ocrRawText);
+                    $productName = $parsed["product_name"];
+                    $serialNumber = $parsed["serial_number"];
+                }
 
-            // Get the ID MySQL just created
-            $newProductId = $conn->insert_id;
-
-            // ---------------------------------
-            // SAVE PHOTO FILE
-            // ---------------------------------
-            $newFileName =
-                "product_" .
-                $newProductId .
-                "_" .
-                uniqid() .
-                "." .
-                $extension;
-
-            $photoPath =
-                "uploads/" .
-                $newFileName;
-
-            if (
-                move_uploaded_file(
-                    $temporaryName,
-                    $photoPath
-                )
-            ) {
-
-                // ---------------------------------
-                // SAVE PHOTO IN DATABASE
-                // --------------------------------
-                $sql = "INSERT INTO product_photos
-                        (product_id, photo_path)
-                        VALUES (?, ?)";
-
-                $stmt = $conn->prepare($sql);
-
-                $stmt->bind_param(
-                    "is",
-                    $newProductId,
-                    $photoPath
-                );
-
-                $stmt->execute();
-
-                // Go to the new product
-                header(
-                    "Location: details.php?id=" .
-                    $newProductId
-                );
-
-                exit;
-
+                $message = "Photo uploaded and scanned successfully!";
             } else {
-
-                $message = "The product was created, but the photo could not be saved.";
-
+                $message = "Failed to save the uploaded image.";
             }
-
         } else {
-
-            $message = "Please use a JPG, PNG, or WebP image.";
-
+            $message = "Please upload a valid JPG, PNG, or WebP image.";
         }
-
     } else {
-
-        $message = "Please take or select a photo.";
-
+        $message = "Please take or select a photo to scan.";
     }
 }
 
+// --------------------------------------------------
+// ACTION 2: User confirms and clicks "Save Product"
+// --------------------------------------------------
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["action_save"])) {
+    $productName = trim($_POST["product_name"] ?? "");
+    $serialNumber = trim($_POST["serial_number"] ?? "");
+    $kitNumber = (int)($_POST["kit_number"] ?? 0);
+    $savedPhotoPath = trim($_POST["photo_path"] ?? "");
+
+    if (!empty($productName) && !empty($serialNumber) && !empty($kitNumber)) {
+        // 1. Insert product
+        $sql = "INSERT INTO productlogs (product_name, serial_number, kit_number) VALUES (?, ?, ?)";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("ssi", $productName, $serialNumber, $kitNumber);
+        $stmt->execute();
+        $newProductId = $conn->insert_id;
+
+        // 2. Rename scan_xxx.jpg to product_ID_xxx.jpg so it's no longer marked as a temporary scan
+        if (!empty($savedPhotoPath) && file_exists($savedPhotoPath)) {
+            $extension = pathinfo($savedPhotoPath, PATHINFO_EXTENSION);
+            $finalPhotoPath = "uploads/product_" . $newProductId . "_" . uniqid() . "." . $extension;
+
+            // Rename the file on the hard drive
+            if (rename($savedPhotoPath, $finalPhotoPath)) {
+                $savedPhotoPath = $finalPhotoPath;
+            }
+
+            $sql = "INSERT INTO product_photos (product_id, photo_path) VALUES (?, ?)";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("is", $newProductId, $savedPhotoPath);
+            $stmt->execute();
+        }
+
+        header("Location: details.php?id=" . $newProductId);
+        exit;
+    } else {
+        $message = "Please make sure Product Name, Serial Number, and Kit are all filled out.";
+        $uploadedPhotoPath = $savedPhotoPath;
+    }
+}
 ?>
 
-// ---- HTML ----
 <!DOCTYPE html>
-
 <html>
-
 <head>
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-    <title>New Product Intake</title>
-
-    <link
-        rel="stylesheet"
-        href="style.css"
-    >
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Product Intake (OCR)</title>
+    <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
 <div class="container">
+    <h1>New Product Intake</h1>
 
-<h1>New Product Intake</h1>
+    <?php if (!empty($message)): ?>
+        <p><strong><?php echo htmlspecialchars($message); ?></strong></p>
+    <?php endif; ?>
 
-<?php if ($message != "") { ?>
+    <!-- STEP 1: SCAN PHOTO FORM -->
+    <form method="POST" enctype="multipart/form-data">
+        <h2>1. Take / Upload Sticker Photo</h2>
 
-    <p>
-        <?php echo htmlspecialchars($message); ?>
-    </p>
+        <input type="hidden" name="previous_scan_path" value="<?php echo htmlspecialchars($uploadedPhotoPath); ?>">
+        
+        <input 
+            type="file" 
+            name="photo" 
+            id="photoInput" 
+            accept="image/*" 
+            capture="environment" 
+            required
+        >
+        <br><br>
 
-<?php } ?>
+        <button type="submit" name="action_scan">
+            Upload & Scan Sticker
+        </button>
+    </form>
 
-<form
-    method="POST"
-    enctype="multipart/form-data"
->
+    <hr>
 
-    <h2>1. Take Product Photo</h2>
+    <!-- STEP 2: OCR RESULTS & PRODUCT INFO VERIFICATION -->
+    <?php if (!empty($uploadedPhotoPath)): ?>
+        <h2>2. Review Scanned Sticker</h2>
 
-    <input
-        type="file"
-        name="photo"
-        id="photoInput"
-        accept="image/*"
-        capture="environment"
-        required
-    >
+        <div>
+            <img src="<?php echo htmlspecialchars($uploadedPhotoPath); ?>" style="max-width: 100%; max-height: 250px; border-radius: 6px;">
+        </div>
 
-    <br><br>
+        <?php if (!empty($ocrRawText)): ?>
+            <h3>Raw Detected Text:</h3>
+            <pre style="background: #eef; padding: 10px; border-radius: 5px; white-space: pre-wrap; font-size: 14px;"><?php echo htmlspecialchars($ocrRawText); ?></pre>
+        <?php endif; ?>
 
-    <img 
-        id="photoPreview"
-        style="display:none; max-width: 100%; max-height: 300px;"
-        alt="Photo Preview"
-    >
+        <h2>3. Confirm Product Information</h2>
 
-    <h2>2. Product Information</h2>
+        <form method="POST">
+            <!-- Hidden path to associate the already uploaded image -->
+            <input type="hidden" name="photo_path" value="<?php echo htmlspecialchars($uploadedPhotoPath); ?>">
 
-    Product Name:
+            <label>Product Name:</label><br>
+            <input 
+                type="text" 
+                name="product_name" 
+                value="<?php echo htmlspecialchars($productName); ?>" 
+                required
+            ><br><br>
+
+            <label>Serial Number:</label><br>
+            <input 
+                type="text" 
+                name="serial_number" 
+                value="<?php echo htmlspecialchars($serialNumber); ?>" 
+                autocomplete="off" 
+                autocapitalize="off" 
+                spellcheck="false" 
+                required
+            ><br><br>
+
+            <label>Kit Number:</label><br>
+            <input 
+                type="number" 
+                name="kit_number" 
+                value="<?php echo htmlspecialchars($kitNumber ?: ''); ?>" 
+                required
+            ><br><br>
+
+            <button type="submit" name="action_save">
+                Confirm & Save to Inventory
+            </button>
+        </form>
+        <!-- Allow user to discard the scan and start over -->
+        <form method="POST">
+            <input type="hidden" name="previous_scan_path" value="<?php echo htmlspecialchars($uploadedPhotoPath); ?>">
+            <button type="submit" name="action_cancel" style="background-color: #d9534f; color: white;">
+                Cancel / Discard Scan
+            </button>
+        </form>
+    <?php endif; ?>
+
     <br>
-
-    <input
-        type="text"
-        name="product_name"
-        required
-    >
-
-    <br><br>
-
-    Serial Number:
-    <br>
-
-    <input
-        type="text"
-        name="serial_number"
-        autocomplete="off"
-        autocapitalize="off"
-        spellcheck="false"
-        required
-    >
-
-    <br><br>
-
-    Kit Number:
-    <br>
-
-    <input
-        type="number"
-        name="kit_number"
-        required
-    >
-
-    <br><br>
-
-    <button type="submit">
-        Save Product
-    </button>
-
-</form>
-
-<br>
-
-<a href="project.php">
-    Back to Product Log
-</a>
-
+    <a href="project.php">Back to Product Log</a>
 </div>
-<script>
-    // Photo preview script
-const photoInput = document.getElementById("photoInput");
-    
-const photoPreview = document.getElementById("photoPreview");
-    
-photoInput.addEventListener(
-    "change",
-    function () {
-        const file = this.files[0];
 
-        if (file) {
-            photoPreview.src =
-                URL.createObjectURL(file);
-
-            photoPreview.style.display =
-                "block";
-        }
-    }
-);
-
-</script>
 </body>
-
 </html>
