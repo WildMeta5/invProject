@@ -14,9 +14,7 @@ $productName = "";
 $serialNumber = "";
 $kitNumber = "";
 
-// --------------------------------------------------
 // ACTION 0: User clicked "Cancel / Discard Scan"
-// --------------------------------------------------
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["action_cancel"])) {
     $oldScan = trim($_POST["previous_scan_path"] ?? "");
     if (!empty($oldScan) && file_exists($oldScan) && strpos(basename($oldScan), "scan_") === 0) {
@@ -25,9 +23,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["action_cancel"])) {
     $message = "Scan cancelled and temporary photo removed.";
 }
 
-// --------------------------------------------------
 // ACTION 1: A photo was uploaded -> Run OCR
-// --------------------------------------------------
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["action_scan"])) {
     
     // If the user is re-scanning, delete their previous temporary scan file first
@@ -79,9 +75,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["action_scan"])) {
     }
 }
 
-// --------------------------------------------------
 // ACTION 2: User confirms and clicks "Save Product"
-// --------------------------------------------------
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["action_save"])) {
     $productName = trim($_POST["product_name"] ?? "");
     $serialNumber = trim($_POST["serial_number"] ?? "");

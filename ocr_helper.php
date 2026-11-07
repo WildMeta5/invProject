@@ -1,39 +1,50 @@
 <?php
 
-// Runs Tesseract OCR on a given image file path and returns the text.
-function runOCR($imagePath) {
-    // Exact path to the Tesseract executable
-    $tesseractPath = 'C:\\Program Files\\Tesseract-OCR\\tesseract.exe';
+// Rotate sideways phone photos upright and resize huge images so Tesseract reads cleanly
+function prepareImageForOCR($imagePath) {
+    $img = @imagecreatefromstring(file_get_contents($imagePath));
+    if (!$img) return;
 
-    // Verify the image file actually exists
-    if (!file_exists($imagePath)) { return "Error: Image file does not exist at " . $imagePath; }
-
-    // Build the shell command:
-    // escapeshellarg() wraps paths in quotes to safely handle spaces and special characters.
-    // The '-' argument tells Tesseract to send output to stdout instead of writing a file.
-    $command = escapeshellarg($tesseractPath) . " " 
-             . escapeshellarg($imagePath) . " stdout -l eng --psm 11 2>&1";
-
-    // Run the command and capture all output
-    $output = shell_exec($command);
-
-    return cleanBarcodeNoise($output);
-
-    // Check if the command failed
-    if ($output === null) {
-        return "Error: Failed to execute Tesseract command.";
+    // 1. Fix sideways phone rotation using EXIF orientation tag
+    $exif = @exif_read_data($imagePath);
+    $angles = [3 => 180, 6 => -90, 8 => 90];
+    if (!empty($exif['Orientation']) && isset($angles[$exif['Orientation']])) {
+        $img = imagerotate($img, $angles[$exif['Orientation']], 0);
     }
-    return trim($output);
+
+    // 2. Shrink huge phone photos (e.g. 4000px) to 1600px wide for faster, sharper OCR
+    if (imagesx($img) > 1600) {
+        $img = imagescale($img, 1600);
+    }
+
+    imagejpeg($img, $imagePath, 90);
+    unset($img);
 }
 
-// Remove lines that look like barcode noise from the OCR output
+// Run Tesseract OCR and return cleaned lines of text
+function runOCR($imagePath) {
+    if (!file_exists($imagePath)) return "Error: Image file not found.";
+
+    prepareImageForOCR($imagePath);
+
+    $tesseract = 'C:\\Program Files\\Tesseract-OCR\\tesseract.exe';
+    $command = escapeshellarg($tesseract) . " " . escapeshellarg($imagePath) . " stdout -l eng --psm 6 2>&1";
+    $output = shell_exec($command);
+
+    return $output ? cleanBarcodeNoise($output) : "Error: Failed to execute Tesseract.";
+}
+
+// Strip out barcode stripe hallucinations, UPC numbers, and Tesseract status messages
 function cleanBarcodeNoise($text) {
-    if (!$text) return "";
-    $lines = explode("\n", $text);
     $cleaned = [];
-    foreach ($lines as $line) {
-        // Skip lines that look like barcode noise (e.g., lines with only numbers and special characters)
-        if (preg_match('/^[0-9\-\.\*\+\(\)\[\]\{\}]+$/', trim($line))) {
+    foreach (explode("\n", $text) as $line) {
+        $line = trim($line);
+        // Skip empty lines, "Estimating resolution...", or lines with no letters (like barcode numbers)
+        if ($line === "" || stripos($line, "Estimating resolution") === 0 || !preg_match('/[A-Za-z]/', $line)) {
+            continue;
+        }
+        // Skip lines with >2 barcode stripe characters (pipes, slashes, brackets)
+        if (preg_match_all('/[|\\\\\/\[\]\{\}\!\~]/', $line) > 2) {
             continue;
         }
         $cleaned[] = $line;
@@ -41,44 +52,31 @@ function cleanBarcodeNoise($text) {
     return implode("\n", $cleaned);
 }
 
-// Function to automatically guess the Product Name and Serial Number from the OCR text
-function guessProductDetails($ocrText) {
-    $result = [
-        'product_name' => '',
-        'serial_number' => ''
-    ];
-    $lines = explode("\n", $ocrText);
-    foreach ($lines as $line) {
-        $line = trim($line);
-        // Skip empty lines
-        if (empty($line)) continue;
+// Extract Product Name and Serial Number from cleaned OCR text
+function parseStickerText($ocrText) {
+    $result = ['product_name' => '', 'serial_number' => ''];
 
-        // Heuristic: If the line contains "Serial" or "SN", treat it as a serial number
-        if (stripos($line, 'serial') !== false || stripos($line, 'sn') !== false) {
-            $result['serial_number'] = preg_replace('/[^A-Za-z0-9\-]/', '', $line); // Clean up the serial number
+    foreach (explode("\n", $ocrText) as $line) {
+        // 1. Grab the code at the end of a line containing "Serial" or "SN" (e.g., "(S) Serial No. H3RHHL42LX2Y")
+        if (preg_match('/(?:Serial|S\/N|SN)\b.*?([A-Z0-9\-]{5,25})$/i', $line, $match)) {
+            $result['serial_number'] = $match[1];
             continue;
         }
 
-        // Heuristic: If the line is not a serial number and is reasonably long, treat it as product name
-        if (strlen($line) > 3 && empty($result['product_name'])) {
-            $result['product_name'] = $line;
+        // 2. Use the first meaningful text line as the Product Name
+        if ($result['product_name'] === '' && strlen($line) > 4 && !preg_match('/^(?:UPC|Model|Designed)/i', $line)) {
+            // Strip leading part numbers like "MV7N2AM/A " if present
+            $result['product_name'] = preg_replace('/^[A-Z0-9]{4,}\/[A-Z0-9]+\s+/i', '', $line);
         }
     }
     return $result;
 }
 
-// Delete temporary scan files older than 30 minutes from the uploads directory
+// Delete only temporary scan_* files older than 30 minutes
 function deleteOldScanFiles() {
-    $uploadDir = 'uploads/';
-    $files = glob($uploadDir . '*');
-    $now = time();
-
-    foreach ($files as $file) {
-        if (is_file($file)) {
-            $fileTime = filemtime($file);
-            if ($now - $fileTime > 30 * 60) { // 30 minutes
-                unlink($file);
-            }
+    foreach (glob('uploads/scan_*') as $file) {
+        if (is_file($file) && (time() - filemtime($file) > 1800)) {
+            unlink($file);
         }
     }
 }
