@@ -56,22 +56,49 @@ function cleanBarcodeNoise($text) {
 function parseStickerText($ocrText) {
     $result = ['product_name' => '', 'serial_number' => ''];
 
+// 1. Grab Serial Number
+    if (preg_match('/(?:Serial|S\/N|SN)\b.*?([A-Z0-9\-]{5,25})/i', $ocrText, $match)) {
+        $result['serial_number'] = $match[1];
+    }
+
+    // 2. If a known product name is anywhere in the text, grab ONLY that name
+    // (Add any other common product names to this list)
+    $knownProducts = '/\b(AirPods\s+Pro|AirPods\s+Max|AirPods|iPhone\s*\d*(?:\s*Pro|\s*Max|\s*Plus|\s*Mini)*|iPad(?:\s*Pro|\s*Air|\s*Mini)*|Apple\s+Watch|MacBook(?:\s*Pro|\s*Air)*|ThinkPad|Latitude)\b/i';
+
     foreach (explode("\n", $ocrText) as $line) {
-        // 1. Grab the code at the end of a line containing "Serial" or "SN" (e.g., "(S) Serial No. H3RHHL42LX2Y")
-        if (preg_match('/(?:Serial|S\/N|SN)\b.*?([A-Z0-9\-]{5,25})$/i', $line, $match)) {
-            $result['serial_number'] = $match[1];
+        // Skip lines that are clearly compatibility notes from the side sticker (e.g. "Apple Watch, or Mac")
+        if (stripos($line, ' or ') !== false || stripos($line, 'chargers') !== false) {
             continue;
         }
 
-        // 2. Use the first meaningful text line as the Product Name
-        if ($result['product_name'] === '' && strlen($line) > 4 && !preg_match('/^(?:UPC|Model|Designed)/i', $line)) {
-            // Strip leading part numbers like "MV7N2AM/A " if present
-            $result['product_name'] = preg_replace('/^[A-Z0-9]{4,}\/[A-Z0-9]+\s+/i', '', $line);
+        if (preg_match($knownProducts, $line, $match)) {
+            $result['product_name'] = trim($match[1]);
+            break;
+        }
+    }
+
+    // 3. Fallback for other/non-Apple products: clean the best product line
+    if ($result['product_name'] === '') {
+        foreach (explode("\n", $ocrText) as $line) {
+            // Skip common non-product lines
+            if (preg_match('/(?:Serial|S\/N|UPC|Model|Designed|Certified|chargers|Energy)/i', $line)) {
+                continue;
+            }
+
+            // Remove any part numbers (words with numbers & slashes/dashes like "MWP22AM/A") and anything before them
+            $clean = preg_replace('/^.*?\b[A-Z0-9]{4,}[\/\-][A-Z0-9]+\s+/i', '', $line);
+
+            // Cut off extra description starting with "with", "for", or "includes"
+            $clean = preg_replace('/\s+(?:with|for|includes)\b.*$/i', '', $clean);
+
+            if (strlen($clean) > 2) {
+                $result['product_name'] = trim($clean);
+                break;
+            }
         }
     }
     return $result;
 }
-
 // Delete only temporary scan_* files older than 30 minutes
 function deleteOldScanFiles() {
     foreach (glob('uploads/scan_*') as $file) {
