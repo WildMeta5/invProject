@@ -2,18 +2,14 @@
 
 require "db.php";
 
-// ---------------------------------
-// GET PRODUCT ID
-// ---------------------------------
+// Get product ID from the URL, default to 0 if not provided
 
 $productId = $_GET["id"] ?? 0;
 
 // Make sure the ID is a number
 $productId = (int)$productId;
 
-// ---------------------------------
-// GET PRODUCT INFORMATION
-// ---------------------------------
+// Get the product from the database
 $sql = "SELECT * FROM productlogs
         WHERE id = ?";
 
@@ -31,9 +27,7 @@ $product = $result->fetch_assoc();
 // If product does not exist
 if (!$product) { die("Product not found."); }
 
-// ---------------------------------
-// GET LATEST PHOTO
-// ---------------------------------
+// Get latest photo for the product
 $sql = "SELECT * FROM product_photos
         WHERE product_id = ?
         ORDER BY id DESC
@@ -50,9 +44,7 @@ $stmt->execute();
 $photoResult = $stmt->get_result();
 $latestPhoto = $photoResult->fetch_assoc();
 
-// ---------------------------------
-// GET REPORT HISTORY
-// ---------------------------------
+// Get all reports for the product
 $sql = "SELECT * FROM product_reports
         WHERE product_id = ?
         ORDER BY id DESC";
@@ -68,10 +60,7 @@ $stmt->execute();
 
 $reportResult = $stmt->get_result();
 
-// ---------------------------------
-// GET ALL PHOTOS
-// ---------------------------------
-
+// Get all photos for the product
 $sql = "SELECT * FROM product_photos
         WHERE product_id = ?
         ORDER BY id DESC";
@@ -89,9 +78,8 @@ $allPhotos = $stmt->get_result();
 
 ?>
 
-// ------------ HTML ------------
+<!-- ------------ HTML ------------ -->
 <!DOCTYPE html>
-
 <html>
 
 <head>

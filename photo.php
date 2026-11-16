@@ -2,9 +2,7 @@
 
 require "db.php";
 
-// ---------------------------------
-// UPLOAD PHOTO
-// ---------------------------------
+// Upload a photo
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     $productId = $_POST["product_id"];
@@ -70,20 +68,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         "Location: photo.php?id=" .
                         $productId
                     );
-
                     exit;
                 }
-
             } else {
-
                 echo "Please upload a JPG, PNG, or WebP image.";
-
             }
-
         } else {
-
             echo "There was a problem uploading the photo.";
-
         }
     }
 }
@@ -105,9 +96,7 @@ $result = $stmt->get_result();
 
 $product = $result->fetch_assoc();
 
-// ---------------------------------
-// GET PRODUCT PHOTOS
-// ---------------------------------
+// Get all photos for the product (again)
 $sql = "SELECT * FROM product_photos
         WHERE product_id = ?
         ORDER BY id DESC";
@@ -125,9 +114,8 @@ $photoResult = $stmt->get_result();
 
 ?>
 
-// ---- Html upload photo form --------
 <!DOCTYPE html>
-
+<!------ Html upload photo form -------->
 <html>
 
 <head>

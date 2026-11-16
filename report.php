@@ -58,9 +58,8 @@ $reportResult = $stmt->get_result();
 
 ?>
 
-// ---- Html --------
 <!DOCTYPE html>
-
+ <!-- ---- Html -------- -->
 <html>
 
 <head>

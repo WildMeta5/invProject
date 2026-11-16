@@ -99,14 +99,36 @@ $kitSql = "SELECT DISTINCT kit_number FROM productlogs ORDER BY kit_number";
 
 $kitResult = $conn->query($kitSql);
 
-// Get all products from the database by
-// Get the search text from the URL
-$search = $_GET["search"] ?? "";
+// Get the search text and kit filter from the URL
+$search = trim($_GET["search"] ?? "");
+$kit = trim($_GET["kit"] ?? "");
+$kitIsValid = $kit !== "" && ctype_digit($kit);
 
-$kit = $_GET["kit"] ?? "";
+// Filter products by search text and/or kit number
+if ($search !== "" && $kitIsValid) {
 
-// If the user searched for something
-if ($search != "") {
+    $searchTerm = "%" . $search . "%";
+    $kitNumber = (int)$kit;
+
+    $sql = $baseSelect . "
+           WHERE (p.product_name LIKE ? OR p.serial_number LIKE ?)
+           AND p.kit_number = ?
+           ORDER BY p.id DESC";
+
+    $stmt = $conn->prepare($sql);
+
+    $stmt->bind_param(
+        "ssi",
+        $searchTerm,
+        $searchTerm,
+        $kitNumber
+    );
+
+    $stmt->execute();
+
+    $result = $stmt->get_result();
+
+} elseif ($search !== "") {
 
     $searchTerm = "%" . $search . "%";
 
@@ -127,10 +149,21 @@ if ($search != "") {
 
     $result = $stmt->get_result();
 
-}
+} elseif ($kitIsValid) {
 
-// If there is no search
-else {
+    $kitNumber = (int)$kit;
+
+    $sql = $baseSelect . "
+           WHERE p.kit_number = ?
+           ORDER BY p.id DESC";
+
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $kitNumber);
+    $stmt->execute();
+
+    $result = $stmt->get_result();
+
+} else {
 
     $sql = $baseSelect . "ORDER BY p.id DESC";
 
@@ -139,9 +172,9 @@ else {
 }
 ?>
 
-// ---- Html --------
-<!DOCTYPE html>
 
+<!DOCTYPE html>
+<!-- ---- Html -------- -->
 <html>
 
 <head> <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -190,23 +223,38 @@ else {
 
 <hr>
 
-<h2>Saved Products</h2>
+<!-- made an id to help with page navigation -->
+<h2 id="saved-products">Saved Products</h2>
 
-<form method="GET">
+<form method="GET" action="project.php#saved-products">
 
-    Search:
+    <label for="product-search">Search:</label>
     <input
         type="text"
+        id="product-search"
         name="search"
         placeholder="Product name or serial number"
-        value="<?php echo htmlspecialchars($_GET["search"] ?? "") ?>"
+        value="<?php echo htmlspecialchars($search); ?>"
     >
 
+    <label for="kit-filter">Kit number:</label>
+    <select name="kit" id="kit-filter">
+        <option value="">All kit numbers</option>
+        <?php while ($kitRow = $kitResult->fetch_assoc()) { ?>
+            <option
+                value="<?php echo htmlspecialchars($kitRow["kit_number"]); ?>"
+                <?php echo $kit === (string)$kitRow["kit_number"] ? "selected" : ""; ?>
+            >
+                Kit <?php echo htmlspecialchars($kitRow["kit_number"]); ?>
+            </option>
+        <?php } ?>
+    </select>
+
     <button type="submit">
-        Search
+        Filter Products
     </button>
 
-    <a href="project.php"> show all </a>
+    <a href="project.php#saved-products">Show all</a>
 
 </form>
 
@@ -217,8 +265,6 @@ else {
 
     <tr>
         <th>Latest Photo</th>
-
-        <th>ID</th>
 
         <th>Product Name</th>
 
@@ -246,10 +292,6 @@ else {
                 <?php } else { ?>
                     No Photo
                 <?php } ?>
-            </td>
-
-            <td>
-                <?php echo $row["id"]; ?>
             </td>
 
             <td>

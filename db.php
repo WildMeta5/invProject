@@ -1,6 +1,6 @@
+<?php
 // This is to help other php pages have access to mySQL 
 // this is to connect to the database
-<?php
 
 $host = "localhost";
 $username = "root";
