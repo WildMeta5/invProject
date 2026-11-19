@@ -185,50 +185,86 @@ if ($search !== "" && $kitIsValid) {
 <body>
     <div class="container">
 
-<h1>Product Log</h1>
-<a href="intake.php">
-    Go to Product Intake
-</a>
+<header class="page-header">
+    <div>
+        <p class="eyebrow">Inventory workspace</p>
+        <h1>Product Log</h1>
+        <p class="page-intro">Be able to see all your products and their details.</p>
+    </div>
+    <a class="header-link" href="#saved-products">Browse inventory <span aria-hidden="true">↓</span></a>
+</header>
 
-<h2 id="add-product"> Add Product</h2>
+<section class="add-product-panel card" id="add-product" aria-labelledby="add-product-title">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Add to inventory</p>
+            <h2>Choose how to add a product</h2>
+        </div>
+    </div>
 
-<form method="POST">
+    <div class="add-product-options">
+        <form method="POST" class="manual-form">
+            <div class="option-heading">
+                <span class="option-icon" aria-hidden="true">＋</span>
+                <div>
+                    <h3>Manual entry</h3>
+                    <p>Enter the product details yourself.</p>
+                </div>
+            </div>
 
-    Product Name:
-    <br>
+            <div class="form-grid">
+                <label>
+                    Product name
+                    <input type="text" name="product_name" placeholder="e.g. Network switch" required>
+                </label>
 
-    <input type="text" name="product_name" required>
+                <label>
+                    Serial number
+                    <input type="text" name="serial_number" placeholder="Enter serial number" autocomplete="off" autocapitalize="off" spellcheck="false" required>
+                </label>
 
-    <br><br>
+                <label>
+                    Kit number
+                    <input type="text" name="kit_number" placeholder="e.g. 1042" required>
+                </label>
+            </div>
 
-    Serial Number:
-    <br>
+            <button type="submit">Save product <span aria-hidden="true">→</span></button>
+        </form>
 
-    <input type="text" name="serial_number" autocomplete="off" autocapitalize="off" spellcheck="false" required>
-
-    <br><br>
-
-    Kit Number:
-    <br>
-
-    <input type="text" name="kit_number" required>
-
-    <br><br>
-
-    <button type="submit">
-        Save Product
-    </button>
-
-</form>
-
-<hr>
+        <div class="intake-card">
+            <div class="option-heading">
+                <span class="option-icon intake-icon" aria-hidden="true">✦</span>
+                <div>
+                    <h3>Photo intake</h3>
+                    <p>Scan a sticker and let OCR fill in the details.</p>
+                </div>
+            </div>
+            <ul class="intake-benefits">
+                <li>Capture the product label</li>
+                <li>Review detected information</li>
+                <li>Save the photo with the product</li>
+            </ul>
+            <a class="intake-button" href="intake.php">Start photo intake <span aria-hidden="true">↗</span></a>
+        </div>
+    </div>
+</section>
 
 <!-- made an id to help with page navigation -->
-<h2 id="saved-products">Saved Products</h2>
+<section class="inventory-section" id="saved-products">
+<div class="section-heading inventory-heading">
+    <div>
+        <p class="eyebrow">Your catalog</p>
+        <h2>Saved products</h2>
+    </div>
+    <span class="inventory-note">Latest additions first</span>
+</div>
 
-<form method="GET" action="project.php#saved-products">
+<form class="filter-bar" method="GET" action="project.php#saved-products">
 
-    <label for="product-search">Search:</label>
+    <label class="search-field" for="product-search">
+        <span aria-hidden="true">⌕</span>
+        <span class="sr-only">Search products</span>
     <input
         type="text"
         id="product-search"
@@ -237,7 +273,10 @@ if ($search !== "" && $kitIsValid) {
         value="<?php echo htmlspecialchars($search); ?>"
     >
 
-    <label for="kit-filter">Kit number:</label>
+    </label>
+
+    <label class="select-field" for="kit-filter">
+        <span class="sr-only">Filter by kit number</span>
     <select name="kit" id="kit-filter">
         <option value="">All kit numbers</option>
         <?php while ($kitRow = $kitResult->fetch_assoc()) { ?>
@@ -249,55 +288,45 @@ if ($search !== "" && $kitIsValid) {
             </option>
         <?php } ?>
     </select>
+    </label>
 
-    <button type="submit">
-        Filter Products
-    </button>
+    <button type="submit">Filter</button>
 
-    <a href="project.php#saved-products">Show all</a>
+    <a class="clear-filter" href="project.php#saved-products">Clear</a>
 
 </form>
 
-<br>
-
 <div class="table-container">
 <table>
-
+    <caption class="sr-only">Saved products</caption>
+<thead>
     <tr>
-        <th>Latest Photo</th>
-
-        <th>Product Name</th>
-
-        <th>Serial Number</th>
-
-        <th>Kit Number</th>
-
-        <th>Latest Report</th>
-
-        <th>Date Added</th>
-
-        <th>Actions</th>
- 
+        <th>Product</th>
+        <th>Serial number</th>
+        <th>Kit</th>
+        <th>Latest report</th>
+        <th>Added</th>
+        <th><span class="sr-only">Actions</span></th>
     </tr>
-
+</thead>
+<tbody>
     <?php while ($row = $result->fetch_assoc()) { ?>
 
         <tr>
 
             <td>
-                <?php if ($row["latest_photo"]) { ?>
+                <div class="product-cell">
+                <?php if (!empty($row["latest_photo"])) { ?>
                     <a href="details.php?id=<?php echo $row["id"]; ?>">
-                    <img src="<?php echo $row["latest_photo"]; ?>" alt="Latest Photo" class="product-thumbnail">
+                    <img src="<?php echo htmlspecialchars($row["latest_photo"]); ?>" alt="" class="product-thumbnail">
                     </a>
                 <?php } else { ?>
-                    No Photo
+                    <span class="product-thumbnail no-photo" aria-hidden="true">—</span>
                 <?php } ?>
-            </td>
-
-            <td>
-                <a href="details.php?id=<?php echo $row["id"]; ?>">
-                <?php echo $row["product_name"]; ?>
+                <a class="product-name" href="details.php?id=<?php echo $row["id"]; ?>">
+                    <?php echo htmlspecialchars($row["product_name"]); ?>
                 </a>
+                </div>
             </td>
 
             <td>
@@ -305,7 +334,7 @@ if ($search !== "" && $kitIsValid) {
             </td>
 
             <td>
-                <?php echo "Kit: " . $row["kit_number"]; ?>
+                <span class="kit-pill">Kit <?php echo htmlspecialchars($row["kit_number"]); ?></span>
             </td>
 
             <td class="latest-report">
@@ -325,7 +354,7 @@ if ($search !== "" && $kitIsValid) {
             </td>
 
             <td>
-                <?php echo $row["created_at"]; ?>
+                <time datetime="<?php echo htmlspecialchars($row["created_at"]); ?>"><?php echo htmlspecialchars($row["created_at"]); ?></time>
             </td>
                 
             <td class="actions">
@@ -353,9 +382,10 @@ if ($search !== "" && $kitIsValid) {
         </tr>
 
     <?php } ?>
-
+</tbody>
 </table>
 </div>
+</section>
 </body>
 
 </html>

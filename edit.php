@@ -66,55 +66,47 @@ $product = $result->fetch_assoc();
 <body>
 <div class="container">
 
-<h1>Edit Product</h1>
+<header class="subpage-header">
+    <div>
+        <p class="eyebrow">Product settings</p>
+        <h1>Edit Product</h1>
+        <p class="page-intro">Update the information used to identify this product.</p>
+    </div>
+    <a class="header-link" href="project.php">Back to inventory</a>
+</header>
 
-<form method="POST">
+<form method="POST" class="form-card standalone-form">
 
     <input type= "hidden" name= "id" value="<?php echo $product["id"]; ?>" >
 
-    Product Name:
-    <br>
-
+    <label>Product name
     <input
         type="text"
         name="product_name"
-        value="<?php echo $product["product_name"]; ?>" required >
-    <br><br>
+        value="<?php echo htmlspecialchars($product["product_name"]); ?>" required >
+    </label>
 
-    Serial Number:
-    <br>
-
+    <label>Serial number
     <input
         type="text"
         name="serial_number"
-        value="<?php echo $product["serial_number"]; ?>"
+        value="<?php echo htmlspecialchars($product["serial_number"]); ?>"
         required
     >
-    <br><br>
+    </label>
 
-    Kit Number:
-    <br>
-
+    <label>Kit number
     <input
         type="number"
         name="kit_number"
         value="<?php echo $product["kit_number"]; ?>"
         required
     >
+    </label>
 
-    <br><br>
-
-    <button type="submit">
-        Save Changes
-    </button>
+    <button type="submit">Save changes <span aria-hidden="true">→</span></button>
 
 </form>
-
-<br>
-
-<a href="project.php">
-    Back to Product Log
-</a>
 
 </div>
 </body>

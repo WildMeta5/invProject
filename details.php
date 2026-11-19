@@ -102,21 +102,17 @@ $allPhotos = $stmt->get_result();
 
 <div class="container">
 
-    <a href="project.php">
-        ← Back to Product Log
-    </a>
-
-    <a href="project.php#add-product">
-        Add another Product
-    </a>
-
-    <h1>
-        <?php
-        echo htmlspecialchars(
-            $product["product_name"]
-        );
-        ?>
-    </h1>
+    <header class="subpage-header">
+        <div>
+            <p class="eyebrow">Product details</p>
+            <h1><?php echo htmlspecialchars($product["product_name"]); ?></h1>
+            <p class="page-intro">Review photos, reports, and inventory information.</p>
+        </div>
+        <div class="header-actions">
+            <a class="header-link" href="project.php">Back to inventory</a>
+            <a class="header-link" href="project.php#add-product">Add another product</a>
+        </div>
+    </header>
 
     <!-- MAIN PHOTO -->
 
@@ -159,13 +155,13 @@ $allPhotos = $stmt->get_result();
         <p>
             <strong>Kit:</strong>
 
-            Kit <?php echo $product["kit_number"]; ?>
+            Kit             <?php echo htmlspecialchars($product["kit_number"]); ?>
         </p>
 
         <p>
             <strong>Date Added:</strong>
 
-            <?php echo $product["created_at"]; ?>
+            <?php echo htmlspecialchars($product["created_at"]); ?>
         </p>
 
     </div>
@@ -188,14 +184,18 @@ $allPhotos = $stmt->get_result();
 
     </div>
 
-    <hr>
-
     <!-- REPORT HISTORY -->
-    <h2>Report History</h2>
+    <section class="history-section">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Activity</p>
+            <h2>Report history</h2>
+        </div>
+    </div>
 
     <div class="table-container">
 
-        <table>
+        <table class="history-table">
 
             <tr>
 
@@ -246,11 +246,16 @@ $allPhotos = $stmt->get_result();
         </table>
 
     </div>
-
-    <hr>
+    </section>
 
     <!-- PHOTO HISTORY -->
-    <h2>Photos</h2>
+    <section class="history-section">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Media</p>
+            <h2>Photos</h2>
+        </div>
+    </div>
 
     <div class="photo-gallery">
 
@@ -268,7 +273,7 @@ $allPhotos = $stmt->get_result();
                 >
 
                 <small>
-                    <?php echo $photo["created_at"]; ?>
+                    <?php echo htmlspecialchars($photo["created_at"]); ?>
                 </small>
 
             </div>
@@ -276,6 +281,7 @@ $allPhotos = $stmt->get_result();
         <?php } ?>
 
     </div>
+    </section>
 
 </div>
 

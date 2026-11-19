@@ -125,63 +125,84 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["action_save"])) {
 <body>
 
 <div class="container">
-    <h1>New Product Intake</h1>
+    <header class="subpage-header">
+        <div>
+            <p class="eyebrow">Trust the process</p>
+            <h1>New Product Intake</h1>
+            <p class="page-intro">Scan a product label to capture its details faster.</p>
+        </div>
+        <a class="header-link" href="project.php">Back to inventory</a>
+    </header>
 
     <?php if (!empty($message)): ?>
-        <p><strong><?php echo htmlspecialchars($message); ?></strong></p>
+        <p class="status-message"><strong><?php echo htmlspecialchars($message); ?></strong></p>
     <?php endif; ?>
 
-    <!-- STEP 1: SCAN PHOTO FORM -->
-    <form method="POST" enctype="multipart/form-data">
-        <h2>1. Take / Upload Sticker Photo</h2>
+    <!-- 1: SCAN PHOTO FORM -->
+    <section class="workflow-card">
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">1st Thing to do...</p>
+                <h2>Take or upload a sticker photo</h2>
+                <p class="page-intro">Make sure the sticker is close to the camera and in bright light, clear and readable! Might make mistakes if not done correctly.</p>
+            </div>
+            <span class="step-badge">Scan</span>
+        </div>
 
-        <input type="hidden" name="previous_scan_path" value="<?php echo htmlspecialchars($uploadedPhotoPath); ?>">
-        
-        <input 
-            type="file" 
-            name="photo" 
-            id="photoInput" 
-            accept="image/*" 
-            capture="environment" 
-            required
-        >
-        <br><br>
+        <form method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="previous_scan_path" value="<?php echo htmlspecialchars($uploadedPhotoPath); ?>">
 
-        <button type="submit" name="action_scan">
-            Upload & Scan Sticker
-        </button>
-    </form>
+            <label class="upload-field" for="photoInput">
+                <span class="upload-icon" aria-hidden="true">↑</span>
+                <span>
+                    <strong>Choose a clear label photo</strong>
+                    <small>JPG, PNG, or WebP · Camera capture supported</small>
+                </span>
+                <input type="file" name="photo" id="photoInput" accept="image/*" capture="environment" required>
+            </label>
 
-    <hr>
+            <button type="submit" name="action_scan">Upload &amp; scan sticker <span aria-hidden="true">→</span></button>
+        </form>
+    </section>
 
-    <!-- STEP 2: OCR RESULTS & PRODUCT INFO VERIFICATION -->
+    <!-- 2: OCR RESULTS & PRODUCT INFO VERIFICATION -->
     <?php if (!empty($uploadedPhotoPath)): ?>
-        <h2>2. Review Scanned Sticker</h2>
+        <section class="workflow-card scan-results">
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Step 2</p>
+                <h2>Review scanned sticker</h2>
+            </div>
+            <span class="step-badge">Review</span>
+        </div>
 
-        <div>
-            <img src="<?php echo htmlspecialchars($uploadedPhotoPath); ?>" style="max-width: 100%; max-height: 250px; border-radius: 6px;">
+        <div class="scan-preview">
+            <img src="<?php echo htmlspecialchars($uploadedPhotoPath); ?>" alt="Uploaded product sticker">
         </div>
 
         <?php if (!empty($ocrRawText)): ?>
-            <h3>Raw Detected Text:</h3>
-            <pre style="background: #eef; padding: 10px; border-radius: 5px; white-space: pre-wrap; font-size: 14px;"><?php echo htmlspecialchars($ocrRawText); ?></pre>
+            <h3>Detected text</h3>
+            <pre class="ocr-output"><?php echo htmlspecialchars($ocrRawText); ?></pre>
         <?php endif; ?>
 
-        <h2>3. Confirm Product Information</h2>
+        <div class="confirm-section">
+        <p class="eyebrow">Step 3</p>
+        <h2>Confirm product information</h2>
 
-        <form method="POST">
+        <form method="POST" class="form-card">
             <!-- Hidden path to associate the already uploaded image -->
             <input type="hidden" name="photo_path" value="<?php echo htmlspecialchars($uploadedPhotoPath); ?>">
 
-            <label>Product Name:</label><br>
+            <label>Product name
             <input 
                 type="text" 
                 name="product_name" 
                 value="<?php echo htmlspecialchars($productName); ?>" 
                 required
-            ><br><br>
+            >
+            </label>
 
-            <label>Serial Number:</label><br>
+            <label>Serial number
             <input 
                 type="text" 
                 name="serial_number" 
@@ -190,31 +211,31 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["action_save"])) {
                 autocapitalize="off" 
                 spellcheck="false" 
                 required
-            ><br><br>
+            >
+            </label>
 
-            <label>Kit Number:</label><br>
+            <label>Kit number
             <input 
                 type="number" 
                 name="kit_number" 
                 value="<?php echo htmlspecialchars($kitNumber ?: ''); ?>" 
                 required
-            ><br><br>
+            >
+            </label>
 
-            <button type="submit" name="action_save">
-                Confirm & Save to Inventory
-            </button>
+            <button type="submit" name="action_save">Confirm &amp; save to inventory <span aria-hidden="true">→</span></button>
         </form>
         <!-- Allow user to discard the scan and start over -->
-        <form method="POST">
+        <form method="POST" class="discard-form">
             <input type="hidden" name="previous_scan_path" value="<?php echo htmlspecialchars($uploadedPhotoPath); ?>">
-            <button type="submit" name="action_cancel" style="background-color: #d9534f; color: white;">
+            <button class="danger-button" type="submit" name="action_cancel">
                 Cancel / Discard Scan
             </button>
         </form>
+        </div>
+        </section>
     <?php endif; ?>
 
-    <br>
-    <a href="project.php">Back to Product Log</a>
 </div>
 
 </body>

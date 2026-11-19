@@ -128,27 +128,29 @@ $photoResult = $stmt->get_result();
 <body>
 <div class="container">
 
-<h1>Product Photos</h1>
+<header class="subpage-header">
+    <div>
+        <p class="eyebrow">Product media</p>
+        <h1>Product Photos</h1>
+        <p class="page-intro">Add reference images to this product record.</p>
+    </div>
+    <div class="header-actions">
+        <a class="header-link" href="project.php">Back to inventory</a>
+        <a class="header-link" href="details.php?id=<?php echo $product["id"]; ?>">See details for this product</a>
+    </div>
+</header>
 
-<h2>
-    <?php echo htmlspecialchars($product["product_name"]); ?>
-</h2>
+<div class="product-summary">
+    <strong><?php echo htmlspecialchars($product["product_name"]); ?></strong>
+    <span>Serial <?php echo htmlspecialchars($product["serial_number"]); ?></span>
+    <span class="kit-pill">Kit <?php echo htmlspecialchars($product["kit_number"]); ?></span>
+</div>
 
-<p>
-    Serial Number:
-    <?php echo htmlspecialchars($product["serial_number"]); ?>
-</p>
+<section class="workflow-card">
+<p class="eyebrow">New photo</p>
+<h2>Upload photo</h2>
 
-<p>
-    Kit:
-    <?php echo $product["kit_number"]; ?>
-</p>
-
-<hr>
-
-<h2>Upload Photo</h2>
-
-<form method="POST" enctype="multipart/form-data">
+<form method="POST" class="form-card" enctype="multipart/form-data">
 
     <input
         type="hidden"
@@ -156,49 +158,45 @@ $photoResult = $stmt->get_result();
         value="<?php echo $product["id"]; ?>"
     >
 
-    <input
-        type="file"
-        name="photo"
-        accept="image/*"
-        capture="environment"
-        required
-    >
+    <label class="upload-field" for="product-photo">
+        <span class="upload-icon" aria-hidden="true">↑</span>
+        <span>
+            <strong>Choose a product photo</strong>
+            <small>JPG, PNG, or WebP · Camera capture supported</small>
+        </span>
+        <input type="file" name="photo" id="product-photo" accept="image/*" capture="environment" required>
+    </label>
 
-    <br><br>
-
-    <button type="submit">
-        Upload Photo
-    </button>
+    <button type="submit">Upload photo <span aria-hidden="true">→</span></button>
 
 </form>
+</section>
 
-<hr>
+<section class="history-section">
+<div class="section-heading">
+    <div>
+        <p class="eyebrow">Media library</p>
+        <h2>Photo history</h2>
+    </div>
+</div>
 
-<h2>Photo History</h2>
-
+<div class="photo-history">
 <?php while ($photo = $photoResult->fetch_assoc()) { ?>
 
-    <div>
+    <figure class="history-photo">
 
         <img
             src="<?php echo htmlspecialchars($photo["photo_path"]); ?>"
-            width="300"
+            alt="Product photo"
         >
 
-        <p>
-            Uploaded:
-            <?php echo $photo["created_at"]; ?>
-        </p>
+        <figcaption>Uploaded <?php echo htmlspecialchars($photo["created_at"]); ?></figcaption>
 
-    </div>
-
-    <hr>
+    </figure>
 
 <?php } ?>
-
-<a href="project.php">
-    Back to Product Log
-</a>
+</div>
+</section>
 
 </div>
 </body>

@@ -72,27 +72,29 @@ $reportResult = $stmt->get_result();
 <body>
 <div class="container">
 
-<h1>Product Report</h1>
+<header class="subpage-header">
+    <div>
+        <p class="eyebrow">Product activity</p>
+        <h1>Product Report</h1>
+        <p class="page-intro">Record things here.</p>
+    </div>
+    <div class="header-actions">
+        <a class="header-link" href="project.php">Back to inventory</a>
+        <a class="header-link" href="details.php?id=<?php echo $product["id"]; ?>">See details for this product</a>
+    </div>
+</header>
 
-<h2>
-    <?php echo htmlspecialchars($product["product_name"]); ?>
-</h2>
+<div class="product-summary">
+    <strong><?php echo htmlspecialchars($product["product_name"]); ?></strong>
+    <span>Serial <?php echo htmlspecialchars($product["serial_number"]); ?></span>
+    <span class="kit-pill">Kit <?php echo htmlspecialchars($product["kit_number"]); ?></span>
+</div>
 
-<p>
-    Serial Number:
-    <?php echo htmlspecialchars($product["serial_number"]); ?>
-</p>
+<section class="workflow-card">
+<p class="eyebrow">New entry</p>
+<h2>Add report</h2>
 
-<p>
-    Kit:
-    <?php echo $product["kit_number"]; ?>
-</p>
-
-<hr>
-
-<h2>Add Report</h2>
-
-<form method="POST">
+<form method="POST" class="form-card">
 
     <input
         type="hidden"
@@ -100,10 +102,8 @@ $reportResult = $stmt->get_result();
         value="<?php echo $product["id"]; ?>"
     >
 
-    Report Type:
-<br>
-
-<select name="report_type" required>
+    <label>Report type
+    <select name="report_type" required>
 
     <option value="Cleaned">Cleaned</option>
 
@@ -115,38 +115,32 @@ $reportResult = $stmt->get_result();
 
     <option value="Note">Note</option>
 
-</select>
+    </select>
+    </label>
 
-<br><br>
-
-    Comment:
-    <br>
-
+    <label>Comment
     <textarea
         name="comment"
         rows="5"
         cols="50"
     ></textarea>
+    </label>
 
-    <br><br>
-
-    <button type="submit">
-        Save Report
-    </button>
+    <button type="submit">Save report <span aria-hidden="true">→</span></button>
 
 </form>
+</section>
 
-<br>
+<section class="history-section">
+<div class="section-heading">
+    <div>
+        <p class="eyebrow">History</p>
+        <h2>Report history</h2>
+    </div>
+</div>
 
-<a href="project.php">
-    Back to Product Log
-</a>
-
-<hr>
-
-<h2>Report History</h2>
-
-<table border="1">
+<div class="table-container">
+<table class="history-table">
 
     <tr>
         <th>Type </th>
@@ -182,6 +176,8 @@ $reportResult = $stmt->get_result();
     <?php } ?>
 
 </table>
+</div>
+</section>
 
 </div>
 </body>
