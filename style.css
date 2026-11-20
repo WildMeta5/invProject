@@ -447,6 +447,30 @@ hr {
     border-color: var(--primary);
 }
 
+.photo-preview {
+    margin: 0 0 16px;
+    padding: 14px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: #fffdfa;
+    text-align: center;
+}
+
+.photo-preview img {
+    display: block;
+    width: 100%;
+    max-width: 500px;
+    max-height: 280px;
+    margin: 0 auto 8px;
+    object-fit: contain;
+    border-radius: 9px;
+}
+
+.photo-preview small {
+    color: var(--muted);
+    overflow-wrap: anywhere;
+}
+
 .status-message {
     margin: -12px 0 24px;
     padding: 12px 14px;
@@ -574,6 +598,20 @@ hr {
     padding: 11px 13px;
     color: var(--muted);
     font-size: 0.8rem;
+}
+
+.delete-entry-form {
+    width: auto;
+    margin: 0;
+}
+
+.history-photo .delete-entry-form {
+    padding: 0 13px 13px;
+}
+
+.delete-entry-form button {
+    min-height: 36px;
+    padding: 7px 12px;
 }
 
 .table-container {

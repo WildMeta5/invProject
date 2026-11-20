@@ -160,6 +160,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["action_save"])) {
                 </span>
                 <input type="file" name="photo" id="photoInput" accept="image/*" capture="environment" required>
             </label>
+            <div class="photo-preview" id="photo-preview" hidden>
+                <img id="photo-preview-image" alt="Preview of the selected label photo">
+                <small id="photo-preview-name"></small>
+            </div>
 
             <button type="submit" name="action_scan">Upload &amp; scan sticker <span aria-hidden="true">→</span></button>
         </form>
@@ -239,4 +243,41 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["action_save"])) {
 </div>
 
 </body>
+
+<script>
+(function () {
+    const input = document.getElementById("photoInput");
+    const preview = document.getElementById("photo-preview");
+    const image = document.getElementById("photo-preview-image");
+    const name = document.getElementById("photo-preview-name");
+    let previewUrl = null;
+
+    input.addEventListener("change", function () {
+        const file = input.files && input.files[0];
+
+        if (!file) {
+            preview.hidden = true;
+            image.removeAttribute("src");
+            name.textContent = "";
+            return;
+        }
+
+        if (previewUrl) {
+            URL.revokeObjectURL(previewUrl);
+        }
+
+        previewUrl = URL.createObjectURL(file);
+        image.src = previewUrl;
+        name.textContent = file.name;
+        preview.hidden = false;
+    });
+
+    window.addEventListener("beforeunload", function () {
+        if (previewUrl) {
+            URL.revokeObjectURL(previewUrl);
+        }
+    });
+})();
+</script>
+
 </html>

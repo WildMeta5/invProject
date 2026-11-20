@@ -2,6 +2,45 @@
 
 require "db.php";
 
+// Delete one photo only from the selected product
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["delete_photo_id"])) {
+    $photoId = (int)$_POST["delete_photo_id"];
+    $productId = (int)($_POST["product_id"] ?? 0);
+
+    $sql = "SELECT photo_path
+            FROM product_photos
+            WHERE id = ? AND product_id = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ii", $photoId, $productId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $photo = $result->fetch_assoc();
+
+    if ($photo) {
+        $photoPath = $photo["photo_path"];
+
+        $sql = "DELETE FROM product_photos
+                WHERE id = ? AND product_id = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("ii", $photoId, $productId);
+        $stmt->execute();
+
+        $uploadsDirectory = realpath(__DIR__ . "/uploads");
+        $photoFile = realpath(__DIR__ . "/" . $photoPath);
+        if (
+            $uploadsDirectory &&
+            $photoFile &&
+            strpos($photoFile, $uploadsDirectory . DIRECTORY_SEPARATOR) === 0 &&
+            is_file($photoFile)
+        ) {
+            unlink($photoFile);
+        }
+    }
+
+    header("Location: photo.php?id=" . $productId);
+    exit();
+}
+
 // Upload a photo
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
@@ -166,6 +205,10 @@ $photoResult = $stmt->get_result();
         </span>
         <input type="file" name="photo" id="product-photo" accept="image/*" capture="environment" required>
     </label>
+    <div class="photo-preview" id="photo-preview" hidden>
+        <img id="photo-preview-image" alt="Preview of the selected product photo">
+        <small id="photo-preview-name"></small>
+    </div>
 
     <button type="submit">Upload photo <span aria-hidden="true">→</span></button>
 
@@ -191,6 +234,17 @@ $photoResult = $stmt->get_result();
         >
 
         <figcaption>Uploaded <?php echo htmlspecialchars($photo["created_at"]); ?></figcaption>
+        <form method="POST" class="delete-entry-form">
+            <input type="hidden" name="delete_photo_id" value="<?php echo (int)$photo["id"]; ?>">
+            <input type="hidden" name="product_id" value="<?php echo (int)$productId; ?>">
+            <button
+                type="submit"
+                class="danger-button"
+                onclick="return confirm('Delete this photo?')"
+            >
+                Delete
+            </button>
+        </form>
 
     </figure>
 
@@ -200,5 +254,41 @@ $photoResult = $stmt->get_result();
 
 </div>
 </body>
+
+<script>
+(function () {
+    const input = document.getElementById("product-photo");
+    const preview = document.getElementById("photo-preview");
+    const image = document.getElementById("photo-preview-image");
+    const name = document.getElementById("photo-preview-name");
+    let previewUrl = null;
+
+    input.addEventListener("change", function () {
+        const file = input.files && input.files[0];
+
+        if (!file) {
+            preview.hidden = true;
+            image.removeAttribute("src");
+            name.textContent = "";
+            return;
+        }
+
+        if (previewUrl) {
+            URL.revokeObjectURL(previewUrl);
+        }
+
+        previewUrl = URL.createObjectURL(file);
+        image.src = previewUrl;
+        name.textContent = file.name;
+        preview.hidden = false;
+    });
+
+    window.addEventListener("beforeunload", function () {
+        if (previewUrl) {
+            URL.revokeObjectURL(previewUrl);
+        }
+    });
+})();
+</script>
 
 </html>

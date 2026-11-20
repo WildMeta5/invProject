@@ -2,6 +2,21 @@
 
 require "db.php";
 
+// Delete one report only from the selected product
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["delete_report_id"])) {
+    $reportId = (int)$_POST["delete_report_id"];
+    $productId = (int)($_POST["product_id"] ?? 0);
+
+    $sql = "DELETE FROM product_reports
+            WHERE id = ? AND product_id = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ii", $reportId, $productId);
+    $stmt->execute();
+
+    header("Location: report.php?id=" . $productId);
+    exit();
+}
+
 // Save a report to the database
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Get the product ID and comment from the form
@@ -148,6 +163,8 @@ $reportResult = $stmt->get_result();
         <th>Comment</th>
 
         <th>Date / Time</th>
+
+        <th><span class="sr-only">Actions</span></th>
     </tr>
 
     <?php while ($report = $reportResult->fetch_assoc()) { ?>
@@ -169,6 +186,19 @@ $reportResult = $stmt->get_result();
                 <?php
                 echo $report["created_at"];
                 ?>
+            </td>
+            <td>
+                <form method="POST" class="delete-entry-form">
+                    <input type="hidden" name="delete_report_id" value="<?php echo (int)$report["id"]; ?>">
+                    <input type="hidden" name="product_id" value="<?php echo (int)$productId; ?>">
+                    <button
+                        type="submit"
+                        class="danger-button"
+                        onclick="return confirm('Delete this report?')"
+                    >
+                        Delete
+                    </button>
+                </form>
             </td>
 
         </tr>

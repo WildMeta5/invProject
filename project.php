@@ -3,6 +3,8 @@
 // Connect to database
 require "db.php";
 
+$deleteError = "";
+
 // Checks if you want to delete a product
 if (isset($_POST["delete_id"])) {
     $deleteId = (int)$_POST["delete_id"];
@@ -14,21 +16,47 @@ if (isset($_POST["delete_id"])) {
     $photostmt->execute();
     $photoResult = $photostmt->get_result();
 
+    $photoPaths = [];
     while ($photorRow = $photoResult->fetch_assoc()) {
-        $photoPath = $photorRow['photo_path'];
-        if (!empty($photoPath) && file_exists($photoPath)) {
-            unlink($photoPath);
-        }
+        $photoPaths[] = $photorRow["photo_path"];
     }
     $photostmt->close();
 
-    $sql= "DELETE FROM productlogs WHERE id = ?";
-    // Prepare
-    $stmt = $conn->prepare($sql);
-    // put id to "i"/?
-    $stmt->bind_param("i", $deleteId);
-    // run it
-    $stmt->execute();
+    $conn->begin_transaction();
+
+    try {
+        $reportStmt = $conn->prepare(
+            "DELETE FROM product_reports WHERE product_id = ?"
+        );
+        $reportStmt->bind_param("i", $deleteId);
+        $reportStmt->execute();
+        $reportStmt->close();
+
+        $photoStmt = $conn->prepare(
+            "DELETE FROM product_photos WHERE product_id = ?"
+        );
+        $photoStmt->bind_param("i", $deleteId);
+        $photoStmt->execute();
+        $photoStmt->close();
+
+        $productStmt = $conn->prepare(
+            "DELETE FROM productlogs WHERE id = ?"
+        );
+        $productStmt->bind_param("i", $deleteId);
+        $productStmt->execute();
+        $productStmt->close();
+
+        $conn->commit();
+
+        foreach ($photoPaths as $photoPath) {
+            if (!empty($photoPath) && file_exists($photoPath)) {
+                unlink($photoPath);
+            }
+        }
+    } catch (Throwable $error) {
+        $conn->rollback();
+        $deleteError = "Could not delete the product and its related records.";
+    }
 }
 // Check if the save button was clicked, Add product
 elseif ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -193,6 +221,10 @@ if ($search !== "" && $kitIsValid) {
     </div>
     <a class="header-link" href="#saved-products">Browse inventory <span aria-hidden="true">↓</span></a>
 </header>
+
+<?php if (!empty($deleteError)): ?>
+    <p class="status-message"><strong><?php echo htmlspecialchars($deleteError); ?></strong></p>
+<?php endif; ?>
 
 <section class="add-product-panel card" id="add-product" aria-labelledby="add-product-title">
     <div class="section-heading">
