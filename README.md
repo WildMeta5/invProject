@@ -30,3 +30,35 @@ the information of it in google sheets or exel and organize it later or have it 
 work so this web app what was developed using WAMP is to help that by keeping it into a database with mysql and running with apache. All the pages used php and html to work and format along with
 used css for styling the pages. There is also a OCR (Tesseract OCR) used to extract text from photos, which for this project is used to scan the product lable and grab
 the name and/or serial number to better speed up and make it easier on inputting new products.</p>
+<h2>How to get it started</h2>
+<p>This program uses <a href="https://wampserver.aviatechno.net/?lang=en=">WAMP</a> and <a href="https://tesseractocr.org/">TESSERACT OCR</a></p> to make it function. So be sure to install those into their default destination.
+<ol>
+  <li>WAMP Changes<ul>
+      <li>Add a invProject folder into "C:\wamp64\www\"</li>
+      <li>Input the files from this github into "C:\wamp64\www\invProject"</li>
+      <li>Once those are set up turn on WAMP and access it through the hidden icon. (If it red be sure to troubleshoot it or try left clicking and then pressing start all service) </li>
+        <li>Check that Apache, php, mysql are up to date. </li>
+        <li>right click on the wamp icon navegate to wamp settings and on the risky section checkmark "allow links on project homepage" (this is to let you easly access the invProject on local host)</li>
+        <li>In the php section access the php.ini file and change these secetions:</li>
+        <li>upload_max_filesize = 20M</li>
+        <li>max_file_uploads = 20</li>
+        <li>post_max_size = 50M</li>
+        <li>max_execution_time = 300</li>
+        <p>Once those have been changed save the file and restart wamp.</p>
+  </ul></li>
+  <li>Tesseract OCR <ul>
+      <li>Download it with its default setting</li>
+      <li>Optional: double check it has been downloaded by using command prompt and putting: "C:\Program Files\Tesseract-OCR\tesseract.exe" --version</li>
+    <p>After that you are already setup!</p>
+  </ul></li>
+</ol>
+<p>Once they have been set up You can access it with localhost on the laptop/PC that is being used.</p>
+<p>Since its a local host to run it on mobile and tablet (or other pc) simplest way is the change httpd-vhosts.conf file that is access through apache section and Add "Require Ip [IPv4 Ip of laptop or pc] below Require Local</p>
+<p>What it does is that inputting the IP address on mobile or tablet will have access to the local host but it only works if the devises are on the same wifi.</p>
+<p>A temporary way to make it work without being connect to the same wifi is by using <a href="https://ngrok.com/">ngrok</a> to do that is to create an account and download it (follow the link for more detail) once downloaded follow the steps given on the ngrok website in the share localhost, if not given open ngrok input the authtoken (ngrok config add-authtoken [authtoken here]) and put ngrok http 80 [https link], it will forward the link to the https and now you can access the localhost not on the same wifi. Last thing is that when access the project it has to be with https://[https link that was forward]/invProject/project.php and ta-da!</p>
+
+<h2>Strech Feature I would like to work on later...</h2>
+<p>Other things to add that is planned is a sperate area where instead of product inventory it is with vehicle's at the station and a log in to separate engineering and media group to look at only the products or only look at only the vehicles and an admin-like that can access both.</p>
+<p>-[] Vehicle Database & basic Vehicle screen</p>
+<p>-[] Create a working log in screen</p>
+<p>-[] update vehicle screen</p>
