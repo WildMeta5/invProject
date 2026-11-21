@@ -12,7 +12,7 @@ confident in my work, more communitive with my peers, and not to be afraid of as
 <li>Chris</li>
 <li>Adrian</li>
 <li>George</li>
-<li>Siy</li>
+<li>Isaias</li>
 <p>For all the help and teachings they have given me for the past 3 month. Lee is the one who took a chance with me and wanted me to learn the
 real world and how to operate, a long with teaching me how to think outside the box to achieve your goals. Maria watched over me helping me keep up
 to speed and help showcase that once work settles down its okay to relax and once problem arise to switch gears and sort it out effectiontly.
@@ -20,7 +20,7 @@ Chris has been informative and always teaching me new thing each day, especially
 them and to be organize the first time so that it is easy to fix later down the line with anything. Adrian is the brains (and muscles) that
 maintain and ensure that all systems are working the way they should be and teach me in a easy to understanding way.
 George helped me out with this project with his feedback and has lots of knowledge in computer engineering among with many more and as shown
-me that it is okay to ask questions. And Siy who is always willing to show me the ins and outs of the news station, showcase his interests, display how to be proactive and clean while working and keeping me on my toes.
+me that it is okay to ask questions. And Isaias who is always willing to show me the ins and outs of the news station, showcase his interests, display how to be proactive and clean while working and keeping me on my toes.
 Without them I wouldn't have an amazing time learning and experiencing, they help showed me that everyone is in it together and that your
 not out of place. Now its showtime!</p>
 
